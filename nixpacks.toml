@@ -1,8 +1,8 @@
-[variables]
-NIXPACKS_PYTHON_VERSION = "3.11"
-
 [phases.setup]
 nixPkgs = ["ffmpeg"]
 
+[phases.install]
+cmds = ["python3 -m venv --copies /opt/venv && /opt/venv/bin/pip install -r requirements.txt"]
+
 [start]
-cmd = "uvicorn api.main:app --host 0.0.0.0 --port $PORT"
+cmd = "/opt/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port $PORT"
