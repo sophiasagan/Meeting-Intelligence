@@ -173,4 +173,51 @@ Max upload size: **500 MB** (frontend limit — adjust `MAX_BYTES` in `Upload.js
 |---|---|---|---|
 | `ANTHROPIC_API_KEY` | Yes | — | Claude API key |
 | `DATABASE_URL` | No | `sqlite:///./meetings.db` | SQLAlchemy DB URL |
-| `VITE_API_URL` | No | `http://localhost:8000` | API base URL (frontend) |
+| `CORS_ORIGINS` | No | `http://localhost:5173` | Comma-separated allowed origins |
+| `VITE_API_URL` | No | `http://localhost:8000` | API base URL (frontend build) |
+
+---
+
+## Deployment
+
+### Backend → Railway
+
+1. Create a new Railway project and connect this repo
+2. Set the **Root Directory** to `/` (repo root)
+3. Railway will detect `railway.toml` and `nixpacks.toml` automatically — `ffmpeg` is installed via Nix, then Python deps via pip
+4. Add environment variables in the Railway dashboard:
+
+   | Variable | Value |
+   |---|---|
+   | `ANTHROPIC_API_KEY` | `sk-ant-...` |
+   | `CORS_ORIGINS` | your Vercel URL, e.g. `https://your-app.vercel.app` |
+   | `DATABASE_URL` | leave blank for SQLite, or add a Railway Postgres plugin and use its `DATABASE_URL` |
+
+5. Copy the Railway-assigned public URL (e.g. `https://your-app.up.railway.app`)
+
+> **Note on persistence:** SQLite data lives on Railway's ephemeral disk — it will reset on redeploy. For production, add a [Railway Postgres](https://railway.app/new/postgres) plugin; `DATABASE_URL` is injected automatically and the app will switch to Postgres automatically.
+
+### Frontend → Vercel
+
+1. Import the repo in Vercel
+2. Set **Root Directory** to `frontend`
+3. Vercel detects Vite automatically — `vercel.json` handles SPA routing rewrites
+4. Add environment variable:
+
+   | Variable | Value |
+   |---|---|
+   | `VITE_API_URL` | Railway public URL, e.g. `https://your-app.up.railway.app` |
+
+5. Deploy — Vercel builds `npm run build` and serves `dist/`
+
+### Local dev (no proxy needed after setup)
+
+The Vite dev server proxies `/meetings`, `/actions`, and `/search` to `http://localhost:8000`, so you can run both servers without setting `VITE_API_URL`:
+
+```bash
+# terminal 1
+uvicorn api.main:app --reload
+
+# terminal 2
+cd frontend && npm run dev
+```

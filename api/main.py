@@ -26,11 +26,18 @@ from .transcriber import transcribe
 SUPPORTED_AUDIO = {".mp3", ".mp4", ".m4a", ".wav"}
 MEETING_TYPES = {"board", "alm_committee", "loan_committee", "department_standup", "other"}
 
+_cors_origins_env = os.getenv("CORS_ORIGINS", "")
+CORS_ORIGINS = (
+    [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+    if _cors_origins_env
+    else ["http://localhost:5173", "http://localhost:4173"]
+)
+
 app = FastAPI(title="CU Meeting Intelligence")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
